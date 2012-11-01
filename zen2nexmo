@@ -1,0 +1,48 @@
+#!/usr/bin/env python
+import Pager
+import sys
+import os
+from nexmomessage import NexmoMessage
+import datetime
+
+# Get arguments
+def main():
+    try:
+        t = sys.argv[1]
+    except:
+        print "Invalid arguments! Usage: zen2nexmo <recipient>"
+        sys.exit(1)
+
+    # Read message from standard in
+    try:
+        fh = os.environ['ZENHOME']+"/log/zenoss_sms.log"
+	print fh
+        logfile = open(fh, 'a')
+        logfile.write("BEGIN\n")
+        logfile.write(datetime.datetime.now().ctime() +"\n")
+    except Exception, e:
+	print "Can't open logfile"
+        sys.exit(2) 
+
+    try:
+        msg = sys.stdin.read()
+        r = "json"
+        u = "YOUR_USERNAME"
+        p = "YOUR_PASSWORD"
+        f = "YOUR_NAME"
+        payload = {'reqtype': r, 'password': p, 'from': f, 'to': t, 'username': u}
+
+    	payload['text'] = msg
+    	sms = NexmoMessage(payload)
+    	sms.set_text_info(msg)
+    	sms.send_request()
+	logfile.write("SMS details: %s\n" % sms.get_details())
+	logfile.write("Page sent to '%s'\n"%t)
+	logfile.write("END\n")
+    	logfile.close()
+
+    except Exception, e:
+        print e
+        sys.exit(1)
+
+main()
